@@ -3,8 +3,18 @@
 // ============================================================
 
 // ── 状态 ─────────────────────────────────────────────────────
-let answers = new Array(16).fill(null); // null | 0 | 1
+let answers = []; // null | 0 | 1，长度由题目总数决定
 let currentQ = 0;
+let shuffledQuestions = []; // 打乱后的题目顺序
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 // ── 页面切换 ─────────────────────────────────────────────────
 function showPage(id) {
@@ -14,7 +24,8 @@ function showPage(id) {
 
 // ── 首页 ─────────────────────────────────────────────────────
 document.getElementById("btn-start").addEventListener("click", () => {
-  answers = new Array(16).fill(null);
+  shuffledQuestions = shuffleArray(QUESTIONS);
+  answers = new Array(shuffledQuestions.length).fill(null);
   currentQ = 0;
   renderQuestion(0);
   showPage("page-quiz");
@@ -23,7 +34,7 @@ document.getElementById("btn-start").addEventListener("click", () => {
 
 // ── 题目渲染 ─────────────────────────────────────────────────
 function renderQuestion(idx) {
-  const q = QUESTIONS[idx];
+  const q = shuffledQuestions[idx];
   const card = document.getElementById("question-card");
 
   // 退出动画
@@ -31,19 +42,21 @@ function renderQuestion(idx) {
   setTimeout(() => {
     card.classList.remove("slide-out");
 
+    const total = shuffledQuestions.length;
     document.getElementById("q-number").textContent = `Q${idx + 1}`;
     document.getElementById("q-text").textContent = q.text;
     document.getElementById("q-current").textContent = idx + 1;
+    document.getElementById("q-total").textContent = total;
 
     // 进度条
-    const pct = (idx / 16) * 100;
+    const total = shuffledQuestions.length;
+    const pct = (idx / total) * 100;
     document.getElementById("progress-fill").style.width = pct + "%";
 
-    // 维度指示
+    // 维度指示（隐藏文字，仅保留颜色进度条装饰）
     const dimEl = document.getElementById("dim-indicator");
-    const dim = DIMS[q.dim];
-    dimEl.textContent = `维度 ${q.dim + 1}：${dim.label}`;
-    dimEl.style.color = dim.colors[0];
+    dimEl.textContent = "";
+    dimEl.style.color = DIMS[q.dim].colors[0];
 
     // 选项
     const optArea = document.getElementById("q-options");
@@ -77,7 +90,7 @@ function updateNextBtn(idx) {
   const btn = document.getElementById("btn-next");
   const answered = answers[idx] !== null;
   btn.disabled = !answered;
-  if (idx === 15 && answered) {
+  if (idx === shuffledQuestions.length - 1 && answered) {
     btn.textContent = "查看结果 ✓";
     btn.classList.add("btn-finish");
   } else {
@@ -92,7 +105,7 @@ document.getElementById("btn-prev").addEventListener("click", () => {
 
 document.getElementById("btn-next").addEventListener("click", () => {
   if (answers[currentQ] === null) return;
-  if (currentQ < 15) { currentQ++; renderQuestion(currentQ); }
+  if (currentQ < shuffledQuestions.length - 1) { currentQ++; renderQuestion(currentQ); }
   else showResult();
 });
 
@@ -105,7 +118,7 @@ function calcScores() {
     { A: 0, B: 0 }, // dim2: A=P概率, B=Dt决定
     { A: 0, B: 0 }, // dim3: A=G全局, B=L局部
   ];
-  QUESTIONS.forEach((q, i) => {
+  shuffledQuestions.forEach((q, i) => {
     const ans = answers[i];
     if (ans === null) return;
     const pole = q.options[ans].pole;
@@ -325,8 +338,9 @@ window.addEventListener("load", () => {
 
 // ── 重试 / 分享 ──────────────────────────────────────────────
 document.getElementById("btn-retry").addEventListener("click", () => {
-  answers = new Array(16).fill(null);
+  answers = [];
   currentQ = 0;
+  shuffledQuestions = [];
   showPage("page-intro");
 });
 
