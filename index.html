@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MITI — 数学直觉类型测试</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ==================== 首页 ==================== -->
+<div id="page-intro" class="page active">
+  <div class="intro-bg">
+    <canvas id="bg-canvas"></canvas>
+  </div>
+  <div class="intro-content">
+    <div class="logo-badge">MITI</div>
+    <h1>数学直觉类型测试</h1>
+    <p class="subtitle">Mathematical Intuition Type Indicator</p>
+    <p class="desc">
+      通过 16 道直觉情境题，揭示你在数学世界中的认知偏好与思维风格。<br/>
+      共四个维度，得出属于你的数学人格类型。
+    </p>
+    <div class="dim-preview">
+      <div class="dim-item"><span class="tag dc">D/C</span> 离散 vs 连续</div>
+      <div class="dim-item"><span class="tag ce">C/E</span> 构造 vs 存在</div>
+      <div class="dim-item"><span class="tag pd">P/D</span> 概率 vs 决定</div>
+      <div class="dim-item"><span class="tag gl">G/L</span> 全局 vs 局部</div>
+    </div>
+    <button id="btn-start" class="btn-primary">开始测试 →</button>
+    <p class="hint">约 5 分钟 · 16 道题 · 完全免费</p>
+  </div>
+</div>
+
+<!-- ==================== 测试页 ==================== -->
+<div id="page-quiz" class="page">
+  <div class="quiz-header">
+    <div class="quiz-logo">MITI</div>
+    <div class="progress-area">
+      <div class="progress-text">
+        <span id="q-current">1</span> / 16
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+      <div class="dim-indicator" id="dim-indicator"></div>
+    </div>
+  </div>
+
+  <div class="quiz-body">
+    <div class="question-card" id="question-card">
+      <div class="q-number" id="q-number">Q1</div>
+      <div class="q-text" id="q-text"></div>
+      <div class="q-options" id="q-options"></div>
+    </div>
+    <div class="quiz-nav">
+      <button id="btn-prev" class="btn-nav" disabled>← 上一题</button>
+      <button id="btn-next" class="btn-nav btn-nav-primary" disabled>下一题 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 结果页 ==================== -->
+<div id="page-result" class="page">
+  <div class="result-bg">
+    <canvas id="result-canvas"></canvas>
+  </div>
+  <div class="result-content">
+    <div class="result-header">
+      <p class="result-label">你的 MITI 类型</p>
+      <div class="result-type" id="result-type">DCPG</div>
+      <div class="result-name" id="result-name">信息架构师</div>
+    </div>
+
+    <div class="radar-wrap">
+      <canvas id="radar-canvas" width="300" height="300"></canvas>
+    </div>
+
+    <div class="result-dims" id="result-dims"></div>
+
+    <div class="result-card">
+      <h3 id="res-title"></h3>
+      <p id="res-desc"></p>
+      <div class="res-tags" id="res-tags"></div>
+    </div>
+
+    <div class="result-collab" id="result-collab"></div>
+
+    <div class="result-actions">
+      <button id="btn-retry" class="btn-secondary">重新测试</button>
+      <button id="btn-share" class="btn-primary">复制结果分享</button>
+    </div>
+
+    <p class="result-footer">
+      MITI 由 <a href="https://github.com/" target="_blank">GitHub</a> 开源 · 灵感来源于 Qwen3-Max 的数学人格构想
+    </p>
+  </div>
+</div>
+
+<div id="toast" class="toast">已复制到剪贴板 ✓</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
