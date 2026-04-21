@@ -373,7 +373,7 @@ document.getElementById("btn-retry").addEventListener("click", () => {
 document.getElementById("btn-share").addEventListener("click", () => {
   const code = document.getElementById("result-type").textContent;
   const name = document.getElementById("result-name").textContent;
-  const text = `我的 MITI 数学直觉类型是 ${code} — ${name}\n快来测测你的类型：https://github.com/`;
+  const text = `我的 MITI 数学直觉类型是 ${code} — ${name}\n快来测测你的类型：https://github.com/eyeholeman2333/mathMBTI`;
   navigator.clipboard.writeText(text).then(() => {
     const toast = document.getElementById("toast");
     toast.classList.add("show");
