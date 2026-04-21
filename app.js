@@ -220,18 +220,22 @@ function showResult() {
     collabEl.innerHTML = "";
   }
 
-  // 雷达图
-  drawRadar(scores);
+  // 雷达图（结果页 + 分享卡）
+  drawRadar(scores, "radar-canvas", 300);
+  populateShareCard(scores, type);
 
   showPage("page-result");
   initResultCanvas();
 }
 
-// ── 雷达图 ────────────────────────────────────────────────────
-function drawRadar(scores) {
-  const canvas = document.getElementById("radar-canvas");
+// ── 雷达图（通用，支持任意 canvas id 和尺寸）────────────────
+function drawRadar(scores, canvasId, size) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  canvas.width = size;
+  canvas.height = size;
   const ctx = canvas.getContext("2d");
-  const W = canvas.width, H = canvas.height;
+  const W = size, H = size;
   const cx = W / 2, cy = H / 2;
   const R = Math.min(W, H) * 0.38;
   const labels = ["离散/连续", "构造/存在", "概率/决定", "全局/局部"];
@@ -357,6 +361,74 @@ function initResultCanvas() {
   initBgCanvas("result-canvas");
 }
 
+// ── 填充分享卡片 ─────────────────────────────────────────────
+function populateShareCard(scores, type) {
+  document.getElementById("sc-type").textContent = type.code;
+  document.getElementById("sc-name").textContent = `${type.emoji} ${type.name}`;
+  document.getElementById("sc-tagline").textContent = type.tagline;
+
+  // 维度条
+  const dimsEl = document.getElementById("sc-dims");
+  dimsEl.innerHTML = "";
+  DIMS.forEach((dim, i) => {
+    const total = scores[i].A + scores[i].B;
+    const pctA = total ? Math.round((scores[i].A / total) * 100) : 50;
+    const pctB = 100 - pctA;
+    dimsEl.innerHTML += `
+      <div class="sc-dim-row">
+        <span class="sc-dim-pole" style="color:${dim.colors[0]}">${dim.poles[0]}</span>
+        <div class="sc-dim-bar-bg">
+          <div class="sc-dim-bar-a" style="width:${pctA}%;background:${dim.colors[0]}"></div>
+          <div class="sc-dim-bar-b" style="width:${pctB}%;background:${dim.colors[1]}"></div>
+        </div>
+        <span class="sc-dim-pole" style="color:${dim.colors[1]}">${dim.poles[1]}</span>
+      </div>`;
+  });
+
+  // 标签
+  document.getElementById("sc-tags").innerHTML =
+    type.fields.map(f => `<span class="sc-tag">${f}</span>`).join("");
+
+  // 雷达图（小尺寸）
+  drawRadar(scores, "sc-radar", 220);
+}
+
+// ── 截图导出 ─────────────────────────────────────────────────
+function saveAsImage() {
+  const btn = document.getElementById("btn-save");
+  const card = document.getElementById("share-card");
+
+  btn.textContent = "生成中…";
+  btn.disabled = true;
+
+  // 临时移到可视范围以确保 html2canvas 正确渲染
+  card.style.left = "-9999px";
+  card.style.top = "0";
+
+  html2canvas(card, {
+    backgroundColor: "#0d1220",
+    scale: 2,           // 2x 高清
+    useCORS: true,
+    logging: false,
+  }).then(canvas => {
+    const link = document.createElement("a");
+    const code = document.getElementById("result-type").textContent;
+    link.download = `MathITI-${code}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+
+    btn.textContent = "保存为图片 ↓";
+    btn.disabled = false;
+
+    const toast = document.getElementById("toast");
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 2500);
+  }).catch(() => {
+    btn.textContent = "保存为图片 ↓";
+    btn.disabled = false;
+  });
+}
+
 // ── 首页立即启动动画 ─────────────────────────────────────────
 window.addEventListener("load", () => {
   initBgCanvas("bg-canvas");
@@ -370,13 +442,4 @@ document.getElementById("btn-retry").addEventListener("click", () => {
   showPage("page-intro");
 });
 
-document.getElementById("btn-share").addEventListener("click", () => {
-  const code = document.getElementById("result-type").textContent;
-  const name = document.getElementById("result-name").textContent;
-  const text = `我的 MITI 数学直觉类型是 ${code} — ${name}\n快来测测你的类型：https://github.com/eyeholeman2333/mathMBTI`;
-  navigator.clipboard.writeText(text).then(() => {
-    const toast = document.getElementById("toast");
-    toast.classList.add("show");
-    setTimeout(() => toast.classList.remove("show"), 2500);
-  });
-});
+document.getElementById("btn-save").addEventListener("click", saveAsImage);

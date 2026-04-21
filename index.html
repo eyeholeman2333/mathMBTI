@@ -218,7 +218,7 @@
 
     <div class="result-actions">
       <button id="btn-retry" class="btn-secondary">重新测试</button>
-      <button id="btn-share" class="btn-primary">复制结果分享</button>
+      <button id="btn-save" class="btn-primary">保存为图片 ↓</button>
     </div>
 
     <p class="result-footer">
@@ -227,8 +227,33 @@
   </div>
 </div>
 
-<div id="toast" class="toast">已复制到剪贴板 ✓</div>
+<div id="toast" class="toast">图片已保存 ✓</div>
 
+<!-- 分享卡片（屏幕外渲染，截图用） -->
+<div id="share-card" class="share-card" aria-hidden="true">
+  <div class="sc-bg">
+    <div class="sc-grid"></div>
+  </div>
+  <div class="sc-body">
+    <div class="sc-logo">MathITI</div>
+    <div class="sc-type" id="sc-type">DCPG</div>
+    <div class="sc-name" id="sc-name">信息架构师</div>
+    <div class="sc-tagline" id="sc-tagline">在离散宇宙中构建概率桥梁</div>
+
+    <div class="sc-dims" id="sc-dims"></div>
+
+    <canvas id="sc-radar" width="220" height="220"></canvas>
+
+    <div class="sc-tags" id="sc-tags"></div>
+
+    <div class="sc-footer">
+      <span>mathiti.github.io</span>
+      <span>数学直觉类型测试</span>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>
