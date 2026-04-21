@@ -200,9 +200,7 @@ html, body {
 }
 
 .dim-indicator {
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.5px;
+  display: none;
 }
 
 .quiz-body {
@@ -253,64 +251,117 @@ html, body {
   font-weight: 500;
 }
 
-/* ── 选项 ──────────────────────────────────────────────────── */
+/* ── 选项（李克特5档） ─────────────────────────────────────── */
 .q-options {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
-.opt-btn {
+/* 左右标签行 */
+.likert-labels {
   display: flex;
-  align-items: flex-start;
+  justify-content: space-between;
   gap: 1rem;
+}
+
+.likert-label-a,
+.likert-label-b {
+  flex: 1;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #cbd5e1;
+  padding: 0.75rem 1rem;
   background: var(--surface);
   border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem 1.25rem;
-  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.likert-label-a {
   text-align: left;
-  color: var(--text);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  transition: border-color 0.2s, background 0.2s, transform 0.15s;
-  width: 100%;
+  border-left: 3px solid var(--accent);
 }
 
-.opt-btn:hover {
-  border-color: rgba(99,179,237,0.4);
-  background: rgba(99,179,237,0.06);
-  transform: translateX(4px);
+.likert-label-b {
+  text-align: right;
+  border-right: 3px solid var(--accent2);
 }
 
-.opt-btn.selected {
-  border-color: var(--accent);
-  background: rgba(99,179,237,0.12);
-}
-
-.opt-letter {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--surface2);
+/* 5档按钮行 */
+.likert-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  transition: background 0.2s, color 0.2s;
-  margin-top: 2px;
+  gap: 0.6rem;
+  padding: 0.25rem 0;
 }
 
-.opt-btn.selected .opt-letter {
-  background: var(--accent);
-  color: #fff;
-}
-
-.opt-text {
+.likert-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
   flex: 1;
+}
+
+.likert-btn:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.likert-btn.selected .likert-dot {
+  background: var(--accent);
+  box-shadow: 0 0 12px rgba(99,179,237,0.6);
+  border-color: var(--accent);
+}
+
+.likert-btn.likert-mid .likert-dot {
+  background: var(--surface2);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.likert-btn.likert-mid.selected .likert-dot {
+  background: #64748b;
+  border-color: #94a3b8;
+  box-shadow: 0 0 10px rgba(148,163,184,0.5);
+}
+
+/* 圆点（大小表示强度） */
+.likert-dot {
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: var(--surface2);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  display: block;
+  flex-shrink: 0;
+}
+
+.likert-dot-lg { width: 28px; height: 28px; }
+.likert-dot-sm { width: 20px; height: 20px; }
+.likert-dot-md { width: 14px; height: 14px; }
+
+.likert-btn:hover .likert-dot {
+  transform: scale(1.15);
+}
+
+/* 提示文字 */
+.likert-hint {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.3;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+.likert-btn.selected .likert-hint {
+  color: var(--accent);
+  opacity: 1;
 }
 
 /* ── 导航 ──────────────────────────────────────────────────── */
@@ -624,4 +675,8 @@ html, body {
   .result-content { padding: 1.25rem 1rem 2rem; }
   .collab-hint { display: none; }
   .dim-pole { width: 58px; font-size: 0.68rem; }
+  .likert-labels { flex-direction: column; gap: 0.5rem; }
+  .likert-label-b { text-align: left; }
+  .likert-hint { display: none; }
+  .likert-btn { padding: 6px 8px; }
 }

@@ -3,7 +3,10 @@
 // ============================================================
 
 // ── 状态 ─────────────────────────────────────────────────────
-let answers = []; // null | 0 | 1，长度由题目总数决定
+// answers[i]: null | -2 | -1 | 0 | 1 | 2
+// 负数 = 倾向选项A极性，正数 = 倾向选项B极性，0 = 中立
+// 绝对值表示强度：2=强烈，1=偏向，0=不确定
+let answers = [];
 let currentQ = 0;
 let shuffledQuestions = []; // 打乱后的题目顺序
 
@@ -49,7 +52,6 @@ function renderQuestion(idx) {
     document.getElementById("q-total").textContent = total;
 
     // 进度条
-    const total = shuffledQuestions.length;
     const pct = (idx / total) * 100;
     document.getElementById("progress-fill").style.width = pct + "%";
 
@@ -58,16 +60,44 @@ function renderQuestion(idx) {
     dimEl.textContent = "";
     dimEl.style.color = DIMS[q.dim].colors[0];
 
-    // 选项
+    // 选项：5档倾向选择器
     const optArea = document.getElementById("q-options");
     optArea.innerHTML = "";
-    q.options.forEach((opt, i) => {
+
+    // 选项文字标签（左A右B）
+    const labelRow = document.createElement("div");
+    labelRow.className = "likert-labels";
+    labelRow.innerHTML = `
+      <span class="likert-label-a">${q.options[0].label}</span>
+      <span class="likert-label-b">${q.options[1].label}</span>`;
+    optArea.appendChild(labelRow);
+
+    // 5档按钮行
+    // 值映射：-2(强A) -1(偏A) 0(中立) 1(偏B) 2(强B)
+    const SCALE = [
+      { value: -2, hint: "完全符合左侧" },
+      { value: -1, hint: "更偏向左侧" },
+      { value:  0, hint: "不确定 / 都行" },
+      { value:  1, hint: "更偏向右侧" },
+      { value:  2, hint: "完全符合右侧" },
+    ];
+    const btnRow = document.createElement("div");
+    btnRow.className = "likert-row";
+    SCALE.forEach(({ value, hint }) => {
       const btn = document.createElement("button");
-      btn.className = "opt-btn" + (answers[idx] === i ? " selected" : "");
-      btn.innerHTML = `<span class="opt-letter">${i === 0 ? "A" : "B"}</span><span class="opt-text">${opt.label}</span>`;
-      btn.addEventListener("click", () => selectOption(idx, i));
-      optArea.appendChild(btn);
+      const isSelected = answers[idx] === value;
+      btn.className = "likert-btn" +
+        (value === 0 ? " likert-mid" : "") +
+        (isSelected ? " selected" : "");
+      btn.title = hint;
+      btn.setAttribute("data-value", value);
+      // 圆点大小随强度变化
+      const size = value === 0 ? "md" : Math.abs(value) === 1 ? "sm" : "lg";
+      btn.innerHTML = `<span class="likert-dot likert-dot-${size}"></span><span class="likert-hint">${hint}</span>`;
+      btn.addEventListener("click", () => selectLikert(idx, value));
+      btnRow.appendChild(btn);
     });
+    optArea.appendChild(btnRow);
 
     // 导航按钮
     document.getElementById("btn-prev").disabled = idx === 0;
@@ -78,17 +108,18 @@ function renderQuestion(idx) {
   }, 200);
 }
 
-function selectOption(qIdx, optIdx) {
-  answers[qIdx] = optIdx;
-  document.querySelectorAll(".opt-btn").forEach((btn, i) => {
-    btn.classList.toggle("selected", i === optIdx);
+function selectLikert(qIdx, value) {
+  answers[qIdx] = value;
+  document.querySelectorAll(".likert-btn").forEach(btn => {
+    const v = parseInt(btn.getAttribute("data-value"));
+    btn.classList.toggle("selected", v === value);
   });
   updateNextBtn(qIdx);
 }
 
 function updateNextBtn(idx) {
   const btn = document.getElementById("btn-next");
-  const answered = answers[idx] !== null;
+  const answered = answers[idx] !== null && answers[idx] !== undefined;
   btn.disabled = !answered;
   if (idx === shuffledQuestions.length - 1 && answered) {
     btn.textContent = "查看结果 ✓";
@@ -110,39 +141,34 @@ document.getElementById("btn-next").addEventListener("click", () => {
 });
 
 // ── 计分 ─────────────────────────────────────────────────────
+// 5档李克特积分制：
+//   value=-2 → A得2分  value=-1 → A得1分  value=0 → 各得0分
+//   value=+1 → B得1分  value=+2 → B得2分
+// scores[dim] = { A: number, B: number }（可为小数，用于雷达图比例）
 function calcScores() {
-  // scores[dim] = { A: count, B: count }
   const scores = [
-    { A: 0, B: 0 }, // dim0: A=C连续, B=D离散
-    { A: 0, B: 0 }, // dim1: A=C构造, B=E存在
-    { A: 0, B: 0 }, // dim2: A=P概率, B=Dt决定
-    { A: 0, B: 0 }, // dim3: A=G全局, B=L局部
+    { A: 0, B: 0 }, // dim0: A极=C连续, B极=D离散
+    { A: 0, B: 0 }, // dim1: A极=C构造, B极=E存在
+    { A: 0, B: 0 }, // dim2: A极=P概率, B极=Dt决定
+    { A: 0, B: 0 }, // dim3: A极=G全局, B极=L局部
   ];
   shuffledQuestions.forEach((q, i) => {
-    const ans = answers[i];
-    if (ans === null) return;
-    const pole = q.options[ans].pole;
-    // 按极性累计
-    if (["C", "E", "P", "Dt", "G", "L", "D"].includes(pole)) {
-      const dimScore = scores[q.dim];
-      if (ans === 0) dimScore.A++; else dimScore.B++;
-    }
+    const val = answers[i];
+    if (val === null || val === undefined) return;
+    const s = scores[q.dim];
+    if (val < 0) s.A += Math.abs(val); // 负值 = 倾向A
+    else if (val > 0) s.B += val;      // 正值 = 倾向B
+    // val===0 中立，不加分
   });
   return scores;
 }
 
 function buildTypeCode(scores) {
-  // dim0: A≥2 → C(连续), else D(离散)
+  // 各维度按积分多少判断极性，平局归A（与原始偏好一致）
   const d0 = scores[0].A >= scores[0].B ? "C" : "D";
-  // dim1: A≥2 → C(构造), else E(存在)
   const d1 = scores[1].A >= scores[1].B ? "C" : "E";
-  // dim2: A≥2 → P(概率), else Dt(决定)
   const d2 = scores[2].A >= scores[2].B ? "P" : "Dt";
-  // dim3: A≥2 → G(全局), else L(局部)
   const d3 = scores[3].A >= scores[3].B ? "G" : "L";
-
-  // 构建可读类型码（与 TYPES 键对应）
-  // 注意：键名用 D/C+C/E+P/Dt+G/L 排列
   return d0 + d1 + d2 + d3;
 }
 
